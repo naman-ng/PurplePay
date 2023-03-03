@@ -8,6 +8,7 @@ import logo from '../public/logo.png';
 import { BigNumber, ethers } from 'ethers';
 import { PurplePay_Address, PurplePay_ABI } from '@/constant';
 import Spinner from '@/components/Spinner';
+import { Approve_ABI } from '@/constant';
 
 export default function Home() {
   const { address } = useAccount();
@@ -15,34 +16,38 @@ export default function Home() {
   const provider = useProvider();
   const [isConnected, setIsConnected] = useState(false);
   const [custom, setCustom] = useState(false);
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState('0');
   const [inputAddress, setInputAddress] = useState('');
   const [loading, setLoading] = useState(false);
+  const [curAdmin, setCurAdmin] = useState('');
   const [admin, setAdmin] = useState('');
   const [balance, setBalance] = useState(0);
   const [tokenAddress, setTokenAddress] = useState('');
   const [adminFeePercentage, setAdminFeePercentage] = useState(0);
+  const [curAdminFeePercentage, setCurAdminFeePercentage] = useState('');
   const [totalFeeCollected, setTotalFeeCollected] = useState('');
 
   const purplePayContract = new ethers.Contract(PurplePay_Address, PurplePay_ABI, signer || provider);
 
   const getAdmin = async () => {
     setLoading(true);
-    const admin = await purplePayContract.getAdmin();
-    setAdmin(admin);
+    const curAdmin = await purplePayContract.getAdmin();
+    setCurAdmin(curAdmin);
     setLoading(false);
   };
 
   const getAdminFeePercentage = async () => {
-    let balance = await purplePayContract.getAdminFeePercentage();
-    // balance = BigNumber.from(balance).divided().toNumber();
-    balance = String(balance);
-    setAdminFeePercentage(balance);
+    const curAdminFeePercentage = await purplePayContract.getAdminFeePercentage();
+    // const amountInWei = ethers.BigNumber.from(curAdminFeePercentage);
+    // const monthlyAmount = ethers.utils.formatEther(amountInWei.toString());
+      
+    setCurAdminFeePercentage(String(curAdminFeePercentage));
   };
 
   const getTotalFeeCollected = async () => {
-    const totalFeeCollected = await purplePayContract.getTotalFeeCollected();
-    setTotalFeeCollected(totalFeeCollected);
+    let totalFeeCollected = await purplePayContract.getTotalFeeCollected();
+    const etherValue = ethers.utils.formatEther(totalFeeCollected);
+    setTotalFeeCollected(parseFloat(etherValue).toFixed(2));
   };
 
   const withdrawFunds = async () => {
@@ -54,14 +59,26 @@ export default function Home() {
 
   const depositFunds = async () => {
     setLoading(true);
-    const tx = await purplePayContract.deposit(inputAddress, amount);
+    if (!inputAddress) {
+      setInputAddress('0xa177753Ad7b2847142631e76C65888c5a1390D17');
+    }
+
+    const tempAmount = ethers.utils.parseEther(String(amount));
+    console.log(tempAmount);
+
+    const tokenContract = new ethers.Contract(inputAddress, Approve_ABI, signer || provider);
+    const approveTx = await tokenContract.approve(PurplePay_Address, tempAmount);
+    await approveTx.wait();
+
+    const tx = await purplePayContract.deposit(inputAddress, tempAmount);
     await tx.wait();
+    
     setLoading(false);
   };
 
   const changeAdmin = async () => {
     setLoading(true);
-    const tx = await purplePayContract.setAdmin(inputAddress);
+    const tx = await purplePayContract.setAdmin(admin);
     await tx.wait();
     setLoading(false);
   };
@@ -101,15 +118,48 @@ export default function Home() {
         </div>
 
         {isConnected ? (
-          address === admin ? (
+          address === curAdmin ? (
             <>
               {loading && <Spinner className="fixed top-[50vw] left-[50vh]" />}
               {!loading && (
-                <div className="flex items-center justify-center w-screen text-xl text-white text-center">
-                  Admin Page{' '}
-                  Total Fee Collected - {totalFeeCollected}
-                  Change Fee Percentage
-                  Change Admin
+                <div className="w-full max-w-screen-sm flex flex-col bg-white rounded-2xl shadow-lg items-center justify-center mx-auto my-28 border-2 border-gray-100 p-8 space-y-8">
+                  <p className="text-2xl font-bold text-primary">Admin Page</p>
+                  <div className="w-3/4 flex space-x-2 rounded-lg border-2 border-fpurple p-1">
+                    <p className="mx-2 text-lg">Total Fee Collected - </p>
+                    <p className="">{totalFeeCollected}</p>
+                  </div>
+
+                  <div className="w-3/4 flex space-x-2 rounded-lg border-2 border-fpurple p-1">
+                    <p className="mx-2 text-lg">Fee Percentage - </p>
+                    <p className="">{curAdminFeePercentage}</p>
+                  </div>
+
+                  <div className="w-3/4 flex justify-between space-x-2 p-1">
+                    <button onClick={changeAdminFeePercentage} className="btn mx-2">
+                      Change Fee%
+                    </button>
+                    <input
+                    className="px-4 rounded-lg border-2 border-fpurple p-1"
+                    type="text"
+                    placeholder="Enter Fee Percentage"
+                    value={adminFeePercentage}
+                    onChange={(e) => setAdminFeePercentage(e.target.value)}
+                  />
+                  </div>
+
+                  <div className="w-3/4 flex justify-between space-x-2 p-1">
+                    <button onClick={changeAdmin} className="btn mx-2">
+                      Change Admin
+                    </button>
+                    <input
+                    className="px-4 rounded-lg border-2 border-fpurple p-1"
+                    type="text"
+                    placeholder="Enter Fee Percentage"
+                    value={admin}
+                    onChange={(e) => setAdmin(e.target.value)}
+                  />
+                  </div>
+
                 </div>
               )}
             </>
@@ -132,10 +182,10 @@ export default function Home() {
                   </span>
                 </div>
                 {custom && (
-                  <div className="w-3/4 flex justify-between space-x-2">
+                  <div className="w-3/4 flex justify-between space-x-2 p-1">
                     <label className="mx-2 text-lg">Address</label>
                     <input
-                      className="px-4"
+                      className="px-4 rounded-lg border-2 border-fpurple p-1"
                       type="text"
                       placeholder="0x..."
                       value={inputAddress}
@@ -143,19 +193,20 @@ export default function Home() {
                     />
                   </div>
                 )}
-                <div className="w-3/4 flex justify-between space-x-2">
+                <div className="w-3/4 flex justify-between space-x-2 p-1">
                   <label className="mx-2 text-lg">Enter amount</label>
                   <input
-                    className="px-4"
+                    className="px-4 rounded-lg border-2 border-fpurple p-1"
                     type="text"
                     placeholder="0.01"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                   />
                 </div>
+
                 {!loading && (
                   <div className="flex flex-row w-full mt-3 pr-2 justify-center">
-                    <button onClick={null} className="btn mt-2 w-1/2">
+                    <button onClick={depositFunds} className="btn mt-2 w-1/2">
                       Deposit {custom ? 'Custom Token' : 'FXP'}
                     </button>
                   </div>
