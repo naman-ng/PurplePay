@@ -21,8 +21,6 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [curAdmin, setCurAdmin] = useState('');
   const [admin, setAdmin] = useState('');
-  const [balance, setBalance] = useState(0);
-  const [tokenAddress, setTokenAddress] = useState('');
   const [adminFeePercentage, setAdminFeePercentage] = useState(0);
   const [curAdminFeePercentage, setCurAdminFeePercentage] = useState('');
   const [totalFeeCollected, setTotalFeeCollected] = useState('');
@@ -38,9 +36,6 @@ export default function Home() {
 
   const getAdminFeePercentage = async () => {
     const curAdminFeePercentage = await purplePayContract.getAdminFeePercentage();
-    // const amountInWei = ethers.BigNumber.from(curAdminFeePercentage);
-    // const monthlyAmount = ethers.utils.formatEther(amountInWei.toString());
-      
     setCurAdminFeePercentage(String(curAdminFeePercentage));
   };
 
@@ -72,7 +67,7 @@ export default function Home() {
 
     const tx = await purplePayContract.deposit(inputAddress, tempAmount);
     await tx.wait();
-    
+
     setLoading(false);
   };
 
@@ -114,54 +109,62 @@ export default function Home() {
           <Link href="/" className="text-xl font-bold">
             <Image src={logo} alt="PurplePay Logo" width={150} height={150} />
           </Link>
-          <ConnectButton />
+          <div className="flex flex-row space-x-4">
+            <Link href="https://fluxpay-faucet.vercel.app/">
+              <button className="btn">FXP Faucet</button>
+            </Link>
+            <ConnectButton showBalance={false} className="px-14" />
+          </div>
         </div>
 
         {isConnected ? (
           address === curAdmin ? (
             <>
-              {loading && <Spinner className="fixed top-[50vw] left-[50vh]" />}
-              {!loading && (
-                <div className="w-full max-w-screen-sm flex flex-col bg-white rounded-2xl shadow-lg items-center justify-center mx-auto my-28 border-2 border-gray-100 p-8 space-y-8">
-                  <p className="text-2xl font-bold text-primary">Admin Page</p>
-                  <div className="w-3/4 flex space-x-2 rounded-lg border-2 border-fpurple p-1">
-                    <p className="mx-2 text-lg">Total Fee Collected - </p>
-                    <p className="">{totalFeeCollected}</p>
-                  </div>
+              <div className="w-full max-w-screen-sm flex flex-col bg-white rounded-2xl shadow-lg items-center justify-center mx-auto my-28 border-2 border-gray-100 p-8 space-y-8">
+                <p className="text-2xl font-bold text-primary">Admin Page</p>
+                <div className="w-3/4 flex space-x-2 rounded-lg border-2 border-fpurple p-1">
+                  <p className="mx-2 text-lg">Total Fee Collected - </p>
+                  <p className="">{totalFeeCollected}</p>
+                </div>
 
-                  <div className="w-3/4 flex space-x-2 rounded-lg border-2 border-fpurple p-1">
-                    <p className="mx-2 text-lg">Fee Percentage - </p>
-                    <p className="">{curAdminFeePercentage}</p>
-                  </div>
+                <div className="w-3/4 flex space-x-2 rounded-lg border-2 border-fpurple p-1">
+                  <p className="mx-2 text-lg">Fee Percentage - </p>
+                  <p className="">{curAdminFeePercentage}</p>
+                </div>
 
+                {!loading && (
                   <div className="w-3/4 flex justify-between space-x-2 p-1">
                     <button onClick={changeAdminFeePercentage} className="btn mx-2">
                       Change Fee%
                     </button>
                     <input
-                    className="px-4 rounded-lg border-2 border-fpurple p-1"
-                    type="text"
-                    placeholder="Enter Fee Percentage"
-                    value={adminFeePercentage}
-                    onChange={(e) => setAdminFeePercentage(e.target.value)}
-                  />
+                      className="px-4 rounded-lg border-2 border-fpurple p-1"
+                      type="text"
+                      placeholder="Enter Fee Percentage"
+                      value={adminFeePercentage}
+                      onChange={(e) => setAdminFeePercentage(e.target.value)}
+                    />
                   </div>
+                )}
+                {loading && <Spinner />}
 
+                {!loading && (
                   <div className="w-3/4 flex justify-between space-x-2 p-1">
                     <button onClick={changeAdmin} className="btn mx-2">
                       Change Admin
                     </button>
                     <input
-                    className="px-4 rounded-lg border-2 border-fpurple p-1"
-                    type="text"
-                    placeholder="Enter Fee Percentage"
-                    value={admin}
-                    onChange={(e) => setAdmin(e.target.value)}
-                  />
+                      className="px-4 rounded-lg border-2 border-fpurple p-1"
+                      type="text"
+                      placeholder="Enter Fee Percentage"
+                      value={admin}
+                      onChange={(e) => setAdmin(e.target.value)}
+                    />
                   </div>
-
-                </div>
-              )}
+                )}
+                {loading && <Spinner />}
+              </div>
+              )
             </>
           ) : (
             <div>
@@ -214,10 +217,9 @@ export default function Home() {
                 {loading && <Spinner />}
               </div>
             </div>
-            
           )
         ) : (
-          <div className="flex items-center justify-center w-screen text-3xl text-white text-center">
+          <div className="flex items-center justify-center w-screen py-32 text-3xl text-white text-center">
             Please connect your wallet to continue
           </div>
         )}
