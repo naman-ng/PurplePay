@@ -104,8 +104,8 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div className="top-0 flex flex-col w-screen bg-black">
-        <div className="top-0 flex flex-row w-screen h-fit py-4 px-[10%] justify-between items-center text-primary">
+      <div className="top-0 flex flex-col w-screen bg-black overflow-hidden">
+        <div className="top-0 flex flex-col w-screen h-fit py-4 px-[10%] justify-between items-center text-primary space-y-2 sm:flex-row sm:space-y-0">
           <Link href="/" className="text-xl font-bold">
             <Image src={logo} alt="PurplePay Logo" width={150} height={150} />
           </Link>
