@@ -186,7 +186,7 @@ export default function Home() {
                 </div>
                 {custom && (
                   <div className="w-3/4 flex justify-between space-x-2 p-1">
-                    <label className="mx-2 text-lg">Address</label>
+                    <label className="mx-2 text-lg">Token Address</label>
                     <input
                       className="px-4 rounded-lg border-2 border-fpurple p-1"
                       type="text"
