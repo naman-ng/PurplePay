@@ -16,3 +16,11 @@ Easily addable features -
 
 Advance features -
 1. Show every user all the current investement he has made in different tokens
+
+Images -
+
+Admin Page
+![image](https://user-images.githubusercontent.com/97289118/222897636-ad2f44c4-2935-4187-aec9-828baa909c4b.png)
+
+Customer Page
+![image](https://user-images.githubusercontent.com/97289118/222897672-798efe48-f808-4e9a-8263-8634141f40c3.png)
